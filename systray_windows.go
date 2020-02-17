@@ -6,8 +6,8 @@ import (
 	"crypto/md5"
 	"fmt"
 	"io/ioutil"
-	"path/filepath"
 	"os"
+	"path/filepath"
 	"sync/atomic"
 
 	"github.com/lxn/walk"
@@ -78,25 +78,19 @@ func quit() {
 // for other platforms.
 func SetIcon(iconBytes []byte) {
 	md5 := md5.Sum(iconBytes)
-	filename := fmt.Sprintf("systray.%x.ico", md5)
-	iconpath := filepath.Join(walk.Resources.RootDirPath(), filename)
-	// First, try to find a previously loaded icon in walk cache
-	icon, err := walk.Resources.Icon(filename)
+	fmt.Println(md5)
+
+	icon, err := walk.NewIconFromFile("yundou.ico")
+
 	if err != nil {
-		// Cache miss, load the icon
-		err := ioutil.WriteFile(iconpath, iconBytes, 0644)
+		fmt.Println("Unable to load icon")
+		fmt.Println(err)
+	} else {
+		err = notifyIcon.SetIcon(icon)
 		if err != nil {
-			fail("Unable to save icon to disk", err)
+			fmt.Println("Unable to set systray icon")
+			fmt.Println(err)
 		}
-		defer os.Remove(iconpath)
-		icon, err = walk.Resources.Icon(filename)
-		if err != nil {
-			fail("Unable to load icon", err)
-		}
-	}
-	err = notifyIcon.SetIcon(icon)
-	if err != nil {
-		fail("Unable to set systray icon", err)
 	}
 	err = notifyIcon.SetVisible(true)
 	if err != nil {
